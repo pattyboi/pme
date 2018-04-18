@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-#  Build Script for Helix Kernel for HTC 10!
+#  Build Script based off Helix Kernel script - thanks!
 #  Based off AK'sbuild script - Thanks!
 #
 
@@ -20,25 +20,24 @@ DEFCONFIG="msm_defconfig"
 
 # Kernel Details
 VER=
-VARIANT="HelixKernel-EAS-HTC10"
+VARIANT="AtomSplitter"
 
 # Vars
 export LOCALVERSION=~`echo $VARIANT-$VER`
 export ARCH=arm64
 export SUBARCH=arm64
-export KBUILD_BUILD_USER=ZeroInfinity
-export KBUILD_BUILD_HOST=elementaryOS
+export KBUILD_BUILD_USER=Cortex
+export KBUILD_BUILD_HOST=ubuntu
 export CCACHE=ccache
 
 # Paths
 KERNEL_DIR=`pwd`
-REPACK_DIR="${HOME}/Documents/kernel-installers/AnyKernel2"
-PATCH_DIR="${HOME}/Documents/kernel-installers/AnyKernel2/patch"
-RAMDISK_DIR="${HOME}/Documents/kernel-installers/AnyKernel2/ramdisk"
-MODULES_DIR="${HOME}/Documents/kernel-installers/AnyKernel2/modules"
-AROMA_DIR="${HOME}/Documents/kernel-installers/AROMA"
+REPACK_DIR="${HOME}/AnyKernel2"
+PATCH_DIR="${HOME}/AnyKernel2/patch"
+RAMDISK_DIR="${HOME}/AnyKernel2/ramdisk"
+MODULES_DIR="${HOME}/AnyKernel2/modules"
 ZIP_MOVE="${HOME}/Documents/kernel-builds"
-ZIMAGE_DIR="${HOME}/Documents/HelixKernel-PME-EAS/out/arch/arm64/boot"
+ZIMAGE_DIR="${HOME}/kernels/pme/out/arch/arm64/boot"
 
 # Functions
 function clean_all {
@@ -63,31 +62,28 @@ function make_modules {
 	find $KERNEL_DIR -name '*.ko' -exec cp -v {} $MODULES_DIR \;
 }
 
-function make_aroma {	
-	cd $AROMA_DIR
-	zip -r9 "$VARIANT"-"$VER".zip *
-	mv "$VARIANT"-"$VER".zip $ZIP_MOVE/"$VARIANT"-"$VER".zip
-	cd $KERNEL_DIR
-}
-
 function make_zip {
 	cp -vr $ZIMAGE_DIR/$KERNEL $REPACK_DIR/zImage
 	cd $REPACK_DIR
 	zip -r9 kernel.zip *
-	mv kernel.zip $AROMA_DIR/kernel/kernel.zip
 }
-
 
 function toolchain {
 	echo "Select Toolchain:"
-	select choice in Google-Android-4.9-Default LINARO-aarch64-linux-gnu-6.3.1-170217
+	select choice in Google-4.9 gcc-linaro-4.9.4 gcc-linaro-6.4.1 gcc-linaro-7.2.1
 	do
 	case "$choice" in
-		"Google-Android-4.9-Default")
-			export TOOLCHAIN=/home/augustine/Android/Sdk/ndk-bundle/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin/aarch64-linux-android-
+		"Google-4.9")
+			export TOOLCHAIN=${HOME}/toolchains/aarch64-linux-android-4.9/bin/aarch64-linux-android-
 			break;;
-		"LINARO-aarch64-linux-gnu-6.3.1-170217")
-			export TOOLCHAIN=/home/augustine/Documents/toolchains/gcc-linaro-6.3.1-2017.02-i686_aarch64-linux-gnu/bin/aarch64-linux-gnu-
+		"gcc-linaro-4.9.4")
+			export TOOLCHAIN=${HOME}/toolchains/gcc-linaro-4.9.4/bin/aarch64-linux-gnu-
+			break;;
+		"gcc-linaro-6.4.1")
+			export TOOLCHAIN=${HOME}/toolchains/gcc-linaro-6.4.1/bin/aarch64-linux-gnu-
+			break;;
+		"gcc-linaro-7.2.1")
+			export TOOLCHAIN=${HOME}/toolchains/gcc-linaro-7.2.1/bin/aarch64-linux-gnu-
 			break;;
 	esac
 	done
@@ -101,11 +97,9 @@ function modules {
 		"Yes")
 			make_modules
 			make_zip
-			make_aroma
 			break;;
 		"No")
 			make_zip
-			make_aroma
 			break;;
 	esac
 	done
@@ -115,11 +109,11 @@ function modules {
 DATE_START=$(date +"%s")
 
 echo -e "${green}"
-echo "Helix Kernel Creation Script:"
+echo "Kernel Creation Script:"
 echo -e "${restore}"
 
 echo "Main Menu"
-select choice in Compile_Kernel Clean_Compile Make_AROMA_zip Exit
+select choice in Compile_Kernel Clean_Compile Exit
 do
 case "$choice" in
 	"Compile_Kernel")
@@ -133,9 +127,6 @@ case "$choice" in
 		toolchain
 		echo "Now Compiling."
 		make_kernel
-		modules
-		break;;
-	"Make_AROMA_zip")
 		modules
 		break;;
 	"Exit")
